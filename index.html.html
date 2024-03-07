@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>profile</title>
+  <style>
+    body {
+      font-family: monospace;
+      list-style-type: none;
+      background: cornflowerblue;
+    }
+
+
+
+    .user-data {
+      width: 100%;
+      min-height: 10vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    button,
+    input {
+      padding: 10px 20px;
+      margin: 0 10px;
+      border-radius: 5px;
+      color: inherit;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #userCards {
+      padding: 20px;
+      min-height: 70vh;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    a {
+      text-decoration: none;
+      color: cornsilk;
+      border: 1px solid;
+      padding: 5px;
+      margin: 91px;
+      border-radius: 13px;
+    }
+
+    a:hover {
+      background-color: teal;
+    }
+
+    .card {
+      margin: 20px;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px -1px 10px -1px black;
+      max-width: 300px;
+      text-align: center;
+    }
+
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      margin: 0 auto 20px;
+    }
+
+    .username {
+      margin: 0;
+      font-size: 24px;
+      color: #333;
+    }
+
+    .user-id {
+      margin: 10px 0;
+    }
+
+    .user-url a {
+      text-decoration: none;
+      color: #007bff;
+    }
+
+    .user-url a:hover {
+      text-decoration: underline;
+      color: #0056b3;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="user-data">
+    <div>
+      <button id="showAllBtn">Show All users</button>
+    </div>
+
+    <form id="searchForm">
+      <input type="text" id="username" name="username" placeholder="Enter name" required />
+      <button type="submit">Search</button>
+    </form>
+  </div>
+  <div id="userCards">
+    Api se aanay valay USERS
+  </div>
+</body>
+<script>
+
+
+  async function fetchGithubUsers() {
+    try {
+      const url = 'https://api.github.com/users';
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data, status code: ${response.status}`);
+      }
+      const data = await response.json();
+      // const data = response;
+      return data;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+
+  async function main() {
+    const usersData = await fetchGithubUsers();
+    if (usersData) {
+      const userDataContainer = document.getElementById("userCards");
+      userDataContainer.innerHTML = "";
+      usersData.forEach((user) => {
+        const card = createUserCard(user);
+        userDataContainer.appendChild(card);
+      });
+    }
+  }
+  document.getElementById("showAllBtn").addEventListener("click", main);
+  function createUserCard(user) {
+    const card = document.createElement("div");
+    card.innerHTML = ``;
+    card.classList.add("card");
+    const avatar = document.createElement("img");
+    avatar.src = user.avatar_url;
+    avatar.alt = "Avatar";
+    avatar.classList.add("avatar");
+    const userDetails = document.createElement("div");
+    userDetails.classList.add("user-details");
+    const username = document.createElement("h2");
+    username.textContent = user.login;
+    username.classList.add("username");
+    const userId = document.createElement("p");
+    userId.textContent = `ID: ${user.id}`;
+    userId.classList.add("user-id");
+    const userUrl = document.createElement("p");
+    const userLink = document.createElement("a");
+    userLink.href = user.html_url;
+    userLink.textContent = "GitHub Profile";
+    userUrl.appendChild(userLink);
+    userDetails.appendChild(username);
+    userDetails.appendChild(userId);
+    userDetails.appendChild(userUrl);
+    card.appendChild(avatar);
+    card.appendChild(userDetails);
+    return card;
+  }
+  async function fetchGithubUserByName(name) {
+    try {
+      const data = await fetchGithubUsers();
+      if (!data) {
+        throw new Error(`something went wrong`);
+      }
+      const filteredData = data.filter((d) => d.login.includes(name));
+      confirm("This Username Not Found")
+      console.log("This User Name Not Found, Do you want to comntinue", filteredData);
+      displayUserCard(filteredData);
+      return filteredData;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+  async function displayUserCard(usersData) {
+    try {
+      usersData.forEach((user) => {
+        console.log("ookkk", user);
+        const card = createUserCard(user);
+        const userCardsContainer = document.getElementById("userCards");
+        userCardsContainer.innerHTML = "";
+        userCardsContainer.appendChild(card);
+      });
+    } catch (error) {
+      console.error(error);
+      const errorMessage = document.createElement("p");
+      errorMessage.textContent = "User not found";
+      const userCardsContainer = document.getElementById("userCards");
+      userCardsContainer.innerHTML = "";
+      userCardsContainer.appendChild(errorMessage);
+    }
+  }
+  document
+    .getElementById("searchForm")
+    .addEventListener("submit", async function (event) {
+      event.preventDefault();
+      const username = document.getElementById("username").value;
+      fetchGithubUserByName(username);
+    });
+</script>
+
+</html>
